@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RTRWH Assessment Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .image-upload {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .image-upload:hover {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+
+        .image-upload.dragover {
+            border-color: #667eea;
+            background-color: #f0f2ff;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+
+        .results {
+            grid-column: 1 / -1;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-top: 20px;
+        }
+
+        .results h2 {
+            color: #667eea;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .result-item {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-item h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .result-item .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .result-item .unit {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .recommendations {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #28a745;
+        }
+
+        .recommendations h3 {
+            color: #28a745;
+            margin-bottom: 15px;
+        }
+
+        .recommendation-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #28a745;
+        }
+
+        .cost-analysis {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .cost-analysis h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .cost-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .cost-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            color: #856404;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .location-info {
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #28a745;
+        }
+
+        .aquifer-info {
+            background: #cce5ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌧️ Rooftop Rainwater Harvesting Assessment</h1>
+            <p>Smart Solutions for Sustainable Water Management</p>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>📍 Location & Basic Details</h2>
+                <div class="form-group">
+                    <label for="userName">Name:</label>
+                    <input type="text" id="userName" placeholder="Enter your name">
+                </div>
+                <div class="form-group">
+                    <label for="location">Location:</label>
+                    <input type="text" id="location" placeholder="Enter city, state or coordinates">
+                    <button class="btn" onclick="getLocation()" style="margin-top: 10px;">📍 Get Current Location</button>
+                </div>
+                <div id="locationInfo" class="location-info hidden">
+                    <h4>Location Details:</h4>
+                    <p id="locationDetails"></p>
+                </div>
+                <div class="form-group">
+                    <label for="dwellers">Number of Dwellers:</label>
+                    <input type="number" id="dwellers" min="1" value="4" placeholder="Number of people">
+                </div>
+                <div class="form-group">
+                    <label for="language">Preferred Language:</label>
+                    <select id="language">
+                        <option value="en">English</option>
+                        <option value="hi">Hindi</option>
+                        <option value="bn">Bengali</option>
+                        <option value="ta">Tamil</option>
+                        <option value="te">Telugu</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🏠 Roof Area Assessment</h2>
+                <div class="form-group">
+                    <label>Choose Method:</label>
+                    <select id="roofMethod" onchange="toggleRoofMethod()">
+                        <option value="manual">Manual Entry</option>
+                        <option value="image">Image Upload</option>
+                    </select>
+                </div>
+                
+                <div id="manualEntry">
+                    <div class="form-group">
+                        <label for="roofArea">Roof Area (sq ft):</label>
+                        <input type="number" id="roofArea" min="100" placeholder="Enter roof area in square feet">
+                    </div>
+                    <div class="form-group">
+                        <label for="roofType">Roof Type:</label>
+                        <select id="roofType">
+                            <option value="concrete">Concrete</option>
+                            <option value="tile">Tile</option>
+                            <option value="metal">Metal Sheet</option>
+                            <option value="asbestos">Asbestos</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="imageEntry" class="hidden">
+                    <div class="form-group">
+                        <label>Upload Roof Image:</label>
+                        <div class="image-upload" onclick="document.getElementById('roofImage').click()">
+                            <p>📷 Click to upload or drag & drop roof image</p>
+                            <input type="file" id="roofImage" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                            <img id="previewImage" class="preview-image hidden" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="openSpace">Available Open Space (sq ft):</label>
+                    <input type="number" id="openSpace" min="0" placeholder="Available space for construction">
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 30px;">
+            <button class="btn" onclick="calculateAssessment()" style="font-size: 18px; padding: 15px 40px;">
+                🔍 Assess Rainwater Harvesting Potential
+            </button>
+        </div>
+
+        <div id="results" class="results hidden">
+            <h2>📊 Assessment Results</h2>
+            
+            <div class="results-grid">
+                <div class="result-item">
+                    <h3>Annual Rainfall</h3>
+                    <div class="value" id="rainfall">0</div>
+                    <div class="unit">mm/year</div>
+                </div>
+                <div class="result-item">
+                    <h3>Runoff Volume</h3>
+                    <div class="value" id="runoffVolume">0</div>
+                    <div class="unit">Liters/year</div>
+                </div>
+                <div class="result-item">
+                    <h3>Water Table Depth</h3>
+                    <div class="value" id="waterTable">0</div>
+                    <div class="unit">meters</div>
+                </div>
+                <div class="result-item">
+                    <h3>Feasibility Score</h3>
+                    <div class="value" id="feasibilityScore">0</div>
+                    <div class="unit">%</div>
+                </div>
+            </div>
+
+            <div id="aquiferInfo" class="aquifer-info">
+                <h4>Principal Aquifer Information:</h4>
+                <p id="aquiferDetails"></p>
+            </div>
+
+            <div class="charts-section">
+                <div class="chart-container">
+                    <h3>Monthly Rainfall Distribution</h3>
+                    <canvas id="rainfallChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Water Table Trend</h3>
+                    <canvas id="waterTableChart"></canvas>
+                </div>
+            </div>
+
+            <div class="recommendations">
+                <h3>🎯 Recommended RTRWH Structures</h3>
+                <div id="recommendationsList"></div>
+            </div>
+
+            <div class="cost-analysis">
+                <h3>💰 Cost & Time Estimation</h3>
+                <div id="costBreakdown"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let userLocation = null;
+        let processedImageArea = null;
+
+        // Sample data for demonstration
+        const sampleData = {
+            rainfall: {
+                'mumbai': 2400,
+                'delhi': 800,
+                'bangalore': 970,
+                'chennai': 1400,
+                'kolkata': 1582,
+                'pune': 722,
+                'hyderabad': 812,
+                'default': 1000
+            },
+            waterTable: {
+                'mumbai': 15,
+                'delhi': 25,
+                'bangalore': 35,
+                'chennai': 8,
+                'kolkata': 6,
+                'pune': 45,
+                'hyderabad': 28,
+                'default': 20
+            },
+            aquifers: {
+                'mumbai': 'Basaltic formations with weathered zones',
+                'delhi': 'Quaternary alluvium deposits',
+                'bangalore': 'Crystalline rocks with weathered layer',
+                'chennai': 'Coastal sand formations',
+                'kolkata': 'Deltaic alluvium deposits',
+                'pune': 'Basaltic trap with fractures',
+                'hyderabad': 'Granite gneiss formations',
+                'default': 'Mixed geological formations'
+            }
+        };
+
+        const monthlyRainfall = [45, 35, 25, 55, 120, 180, 250, 220, 150, 85, 25, 15];
+        const waterTableTrend = [18, 22, 28, 32, 25, 15, 12, 10, 14, 16, 20, 18];
+
+        function toggleRoofMethod() {
+            const method = document.getElementById('roofMethod').value;
+            const manualEntry = document.getElementById('manualEntry');
+            const imageEntry = document.getElementById('imageEntry');
+            
+            if (method === 'manual') {
+                manualEntry.classList.remove('hidden');
+                imageEntry.classList.add('hidden');
+            } else {
+                manualEntry.classList.add('hidden');
+                imageEntry.classList.remove('hidden');
+            }
+        }
+
+        function getLocation() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '📍 Getting Location... <span class="loading"></span>';
+            btn.disabled = true;
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        userLocation = { lat, lon };
+                        
+                        // Simulate reverse geocoding
+                        setTimeout(() => {
+                            const cities = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata', 'Pune', 'Hyderabad'];
+                            const randomCity = cities[Math.floor(Math.random() * cities.length)];
+                            
+                            document.getElementById('location').value = `${randomCity}, India`;
+                            document.getElementById('locationDetails').textContent = 
+                                `Coordinates: ${lat.toFixed(4)}, ${lon.toFixed(4)} | City: ${randomCity}`;
+                            document.getElementById('locationInfo').classList.remove('hidden');
+                            
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        }, 2000);
+                    },
+                    function(error) {
+                        alert('Unable to get location. Please enter manually.');
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
+                );
+            }
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('previewImage');
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                    
+                    // Simulate image processing for area calculation
+                    setTimeout(() => {
+                        processedImageArea = Math.floor(Math.random() * 2000) + 800;
+                        alert(`Image processed! Estimated roof area: ${processedImageArea} sq ft`);
+                    }, 1500);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function calculateAssessment() {
+            const userName = document.getElementById('userName').value;
+            const location = document.getElementById('location').value.toLowerCase();
+            const dwellers = parseInt(document.getElementById('dwellers').value);
+            const method = document.getElementById('roofMethod').value;
+            
+            let roofArea;
+            if (method === 'manual') {
+                roofArea = parseFloat(document.getElementById('roofArea').value);
+            } else {
+                roofArea = processedImageArea;
+            }
+            
+            const openSpace = parseFloat(document.getElementById('openSpace').value);
+
+            if (!userName || !location || !roofArea || !dwellers) {
+                alert('Please fill in all required fields!');
+                return;
+            }
+
+            // Get city name for data lookup
+            const cityKey = Object.keys(sampleData.rainfall).find(city => 
+                location.includes(city)) || 'default';
+
+            // Calculate results
+            const rainfall = sampleData.rainfall[cityKey];
+            const runoffCoeff = method === 'manual' ? 
+                (document.getElementById('roofType').value === 'concrete' ? 0.85 : 0.75) : 0.80;
+            
+            const runoffVolume = Math.floor((roofArea * rainfall * runoffCoeff * 0.623)); // Convert to liters
+            const waterTable = sampleData.waterTable[cityKey];
+            const aquifer = sampleData.aquifers[cityKey];
+            
+            // Calculate feasibility score
+            let feasibility = 60;
+            if (runoffVolume > 50000) feasibility += 20;
+            if (waterTable > 10) feasibility += 10;
+            if (openSpace > 200) feasibility += 10;
+            feasibility = Math.min(feasibility, 95);
+
+            // Display results
+            document.getElementById('rainfall').textContent = rainfall.toLocaleString();
+            document.getElementById('runoffVolume').textContent = runoffVolume.toLocaleString();
+            document.getElementById('waterTable').textContent = waterTable;
+            document.getElementById('feasibilityScore').textContent = feasibility;
+            document.getElementById('aquiferDetails').textContent = aquifer;
+
+            // Generate recommendations
+            generateRecommendations(runoffVolume, openSpace, waterTable);
+            
+            // Generate cost analysis
+            generateCostAnalysis(runoffVolume, openSpace);
+            
+            // Show results and create charts
+            document.getElementById('results').classList.remove('hidden');
+            
+            setTimeout(() => {
+                createRainfallChart();
+                createWaterTableChart();
+            }, 100);
+
+            // Scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function generateRecommendations(runoffVolume, openSpace, waterTable) {
+            const recommendations = [];
+            
+            if (runoffVolume > 30000 && openSpace > 100) {
+                recommendations.push({
+                    type: "Recharge Pit",
+                    description: "Recommended for your high runoff volume",
+                    dimensions: "3m × 3m × 2m deep",
+                    capacity: "18,000 liters storage"
+                });
+            }
+            
+            if (openSpace > 200) {
+                recommendations.push({
+                    type: "Percolation Tank",
+                    description: "Ideal for groundwater recharge",
+                    dimensions: "5m × 4m × 1.5m deep",
+                    capacity: "30,000 liters storage"
+                });
+            }
+            
+            if (waterTable < 15) {
+                recommendations.push({
+                    type: "Injection Well",
+                    description: "Direct groundwater recharge",
+                    dimensions: "6 inch diameter, 15m deep",
+                    capacity: "Direct recharge system"
+                });
+            }
+            
+            recommendations.push({
+                type: "Storage Tank",
+                description: "Basic rainwater storage",
+                dimensions: `${Math.ceil(runoffVolume/1000/10)}m × 3m × 2m`,
+                capacity: `${Math.floor(runoffVolume * 0.7).toLocaleString()} liters`
+            });
+
+            const listHTML = recommendations.map(rec => `
+                <div class="recommendation-item">
+                    <h4>${rec.type}</h4>
+                    <p><strong>Purpose:</strong> ${rec.description}</p>
+                    <p><strong>Dimensions:</strong> ${rec.dimensions}</p>
+                    <p><strong>Capacity:</strong> ${rec.capacity}</p>
+                </div>
+            `).join('');
+            
+            document.getElementById('recommendationsList').innerHTML = listHTML;
+        }
+
+        function generateCostAnalysis(runoffVolume, openSpace) {
+            let baseCost = 25000; // Base cost in INR
+            let constructionTime = 15; // Base days
+            
+            // Adjust based on volume and space
+            if (runoffVolume > 50000) {
+                baseCost += 15000;
+                constructionTime += 5;
+            }
+            if (openSpace > 300) {
+                baseCost += 10000;
+                constructionTime += 3;
+            }
+            
+            const materialCost = Math.floor(baseCost * 0.6);
+            const laborCost = Math.floor(baseCost * 0.3);
+            const miscCost = Math.floor(baseCost * 0.1);
+            
+            const costHTML = `
+                <div class="cost-item">
+                    <span>Material Cost:</span>
+                    <span>₹${materialCost.toLocaleString()}</span>
+                </div>
+                <div class="cost-item">
+                    <span>Labor Cost:</span>
+                    <span>₹${laborCost.toLocaleString()}</span>
+                </div>
+                <div class="cost-item">
+                    <span>Miscellaneous:</span>
+                    <span>₹${miscCost.toLocaleString()}</span>
+                </div>
+                <div class="cost-item">
+                    <span>Total Estimated Cost:</span>
+                    <span>₹${baseCost.toLocaleString()}</span>
+                </div>
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #ffc107;">
+                    <strong>⏱️ Estimated Construction Time: ${constructionTime} days</strong>
+                </div>
+                <div style="margin-top: 10px; font-size: 14px; color: #666;">
+                    💰 Potential water savings: ₹${Math.floor(runoffVolume * 0.002).toLocaleString()}/year
+                </div>
+            `;
+            
+            document.getElementById('costBreakdown').innerHTML = costHTML;
+        }
+
+        function createRainfallChart() {
+            const ctx = document.getElementById('rainfallChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Rainfall (mm)',
+                        data: monthlyRainfall,
+                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function createWaterTableChart() {
+            const ctx = document.getElementById('waterTableChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Water Table Depth (m)',
+                        data: waterTableTrend,
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            reverse: true,
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize drag and drop for image upload
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageUpload = document.querySelector('.image-upload');
+            
+            imageUpload.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+            
+            imageUpload.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+            });
+            
+            imageUpload.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    document.getElementById('roofImage').files = files;
+                    handleImageUpload({target: {files: files}});
+                }
+            });
+        });
+    </script>
+</body>
+</html>
